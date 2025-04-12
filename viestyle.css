@@ -1,0 +1,76 @@
+ 
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: lightgreen;
+   padding: 50px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 30px;
+}
+
+.table-container {
+  max-width: 95%;
+  margin: 0 auto;
+  overflow-x: auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+th, td {
+  padding: 16px 20px;
+  text-align: left;
+}
+
+th {
+  background-color: #6c5ce7;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+td a {
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: blue  ;
+  text-decoration: none;
+  font-weight: 500;
+  transition: 0.3s ease;
+  margin-right: 6px;
+  text-align: center;
+ 
+   
+}
+
+.edit-btn {
+  background-color: #00b894;
+}
+
+.edit-btn:hover {
+  background-color: #019875;
+}
+
+.delete-btn {
+  background-color: #d63031;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
