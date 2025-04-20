@@ -45,6 +45,8 @@ if ($result = mysqli_query($link, $sql)) {
             echo "<td>" . $row['Package'] . "</td>";
             echo "<td>";
             echo "<a href='read.php?id=" . $row['id'] . "'>View Record</a>";
+            echo "<a href='update.php?id=" . $row['id'] . "'>Update Record</a>";
+
             
             echo "</td>";
             echo "</tr>";
