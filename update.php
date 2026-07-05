@@ -1,137 +1,152 @@
- 
 <?php
-// Include config file
 require_once "config.php";
 
-// Processing form data when form is submitted
-if (isset($_POST["id"]) && !empty($_POST["id"])) {
-    // Get hidden input value
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
     $id = $_POST["id"];
 
-    $input_name = trim($_POST["Name"]);
-    $name = $input_name;
+    // Alumni table
+    $name = trim($_POST["name"]);
+    $department = trim($_POST["department"]);
+    $company = trim($_POST["company"]);
+    $package = trim($_POST["package"]);
+    $image = trim($_POST["image"]);
 
-    $input_department = trim($_POST["Department"]);
-    $department = $input_department;
+    // Personal table
+    $mobile = trim($_POST["mobile"]);
+    $address = trim($_POST["address"]);
+    $sid = trim($_POST["sid"]);
 
-    $input_cnname = trim($_POST["Company_Name"]);
-    $cnname = $input_cnname;
+    // Update alumni table
+    $sql1 = "UPDATE alumni
+             SET Name=?, Department=?, Company_Name=?, Package=?, Image=?
+             WHERE id=?";
 
-    $input_salary = trim($_POST["Package"]);
-    $salary = $input_salary;
+    $stmt1 = mysqli_prepare($link, $sql1);
 
-    $input_img = trim($_POST["Image"]);
-    $img = $input_img;
+    mysqli_stmt_bind_param(
+        $stmt1,
+        "sssisi",
+        $name,
+        $department,
+        $company,
+        $package,
+        $image,
+        $id
+    );
 
-    $input_nm = trim($_POST["name"]);
-    $nm = $input_nm;
+    // Update personal table
+    $sql2 = "UPDATE personal
+             SET Name=?, Department=?, Mobileno=?, Address=?, sid=?
+             WHERE id=?";
 
-    $input_dept = trim($_POST["department"]);
-    $dept = $input_dept;
-    $input_add = trim($_POST["Address"]);
-    $add = $input_add;
-    $input_mno = trim($_POST["Mobileno"]);
-    $mno = $input_mno;
+    $stmt2 = mysqli_prepare($link, $sql2);
 
-    $input_sid = trim($_POST["sid"]);
-    $sid = $input_sid;
-    
-    $sql = "UPDATE alumni SET Name=?, Department=?, Company_Name=?, Package=?, Image=? WHERE id=?";
-    $sq = "UPDATE personal SET name=?, department=?, Mobileno=?, Address=?, sid=? WHERE id=?";
-    $result1 = mysqli_prepare($link, $sq);
-    $result2 = mysqli_prepare($link, $sql);
-    if ($result1 && $result2) {
-        // Bind variables to the prepared statement as parameters
-        mysqli_stmt_bind_param($result1, "sssssi",$nm, $dept, $add, $mno,$sid ,$id);
-        $last_id = mysqli_insert_id($link);
-        mysqli_stmt_bind_param($result2, "sssisi",$name, $department, $cnname, $salary,$img ,$last_id);
+    mysqli_stmt_bind_param(
+        $stmt2,
+        "sssssi",
+        $name,
+        $department,
+        $mobile,
+        $address,
+        $sid,
+        $id
+    );
 
-        // Attempt to execute the prepared statement
-        if (mysqli_stmt_execute($result1) && mysqli_stmt_execute($result2)) {
-            // Records updated successfully. Redirect to landing page
-            header("location: index.php");
-            exit();
-        } else {
-            echo "Something went wrong. Please try again later.";
-        }
+    if (mysqli_stmt_execute($stmt1) && mysqli_stmt_execute($stmt2)) {
+
+        header("Location: index.php");
+        exit();
+
+    } else {
+
+        echo "Error : ".mysqli_error($link);
+
     }
 
-    // Close statement
-    mysqli_stmt_close($result1);
-    mysqli_stmt_close($result2);
-
-
-    // Close connection
+    mysqli_stmt_close($stmt1);
+    mysqli_stmt_close($stmt2);
     mysqli_close($link);
+
 } else {
-    // Check existence of id parameter before processing further
-    if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
-        // Get URL parameter
-        $id = trim($_GET["id"]);
 
-        // Prepare a select statement
-        $sql = "SELECT * FROM employees WHERE id = ?";
-        if ($stmt = mysqli_prepare($link, $sql)) {
-            // Bind variables to the prepared statement as parameters
-            mysqli_stmt_bind_param($stmt, "i", $param_id);
+    if (!isset($_GET["id"])) {
+        die("Invalid Request");
+    }
 
-            // Set parameters
-            $param_id = $id;
+    $id = $_GET["id"];
 
-            // Attempt to execute the prepared statement
-            if (mysqli_stmt_execute($stmt)) {
-                $result = mysqli_stmt_get_result($stmt);
+    $sql = "SELECT alumni.*, personal.Mobileno,
+                   personal.Address,
+                   personal.sid
+            FROM alumni
+            INNER JOIN personal
+            ON alumni.id = personal.id
+            WHERE alumni.id=?";
 
-                if (mysqli_num_rows($result) == 1) {
-                    /* Fetch result row as an associative array. Since the result set contains only one row, we don't need to use while loop */
-                    $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+    $stmt = mysqli_prepare($link, $sql);
 
-                    // Retrieve individual field value
-                    $name = $row["name"];
-                    $department = $row["department"];
-                    $salary = $row["salary"];
-                } else {
-                    // URL doesn't contain valid id. Redirect to error page
-                    header("location: error.php");
-                    exit();
-                }
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
-            } else {
-                echo "Oops! Something went wrong. Please try again later.";
-            }
-        }
+    mysqli_stmt_execute($stmt);
 
-        // Close statement
-       
+    $result = mysqli_stmt_get_result($stmt);
 
-        // Close connection
-        mysqli_close($link);
+    if (mysqli_num_rows($result) == 1) {
+
+        $row = mysqli_fetch_assoc($result);
+
     } else {
-        // URL doesn't contain id parameter. Redirect to error page
-        header("location: error.php");
-        exit();
+
+        die("Record not found.");
+
     }
 }
 ?>
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Alumni</title>
+</head>
+
+<body>
+
 <h2>Update Record</h2>
-<p>Please edit the input values and submit to update the record.</p>
-<form action="<?php echo basename($_SERVER['REQUEST_URI']); ?>" method="post">
-    <label>Name</label>
-    <input type="text" name="name" value="<?php echo $name; ?>">
-    <label>Department</label>
-    <input type="text" name="department" value="<?php echo $department; ?>">
-    <label>Package</label>
-    <input type="text" name="Package" value="<?php echo $salary; ?>">
-    <label>Company Name</label>
-    <input type="text" name="Comany_Name" value="<?php echo $cnname; ?>">
-    <label>Department</label>
-    <input type="text" name="d" value="<?php echo $department; ?>">
-    <label>Image</label>
-    <img src="<?php echo htmlspecialchars($image); ?>" width="150" height="150" alt="Image">    
-    
-    <input type="hidden" name="id" value="<?php echo $id; ?>"/>
-    <input type="submit" value="Submit">
-    <a href="index.php">Cancel</a>
+
+<form method="post">
+
+    <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+
+    <label>Name</label><br>
+    <input type="text" name="name" value="<?php echo $row['Name']; ?>"><br><br>
+
+    <label>Department</label><br>
+    <input type="text" name="department" value="<?php echo $row['Department']; ?>"><br><br>
+
+    <label>Company Name</label><br>
+    <input type="text" name="company" value="<?php echo $row['Company_Name']; ?>"><br><br>
+
+    <label>Package</label><br>
+    <input type="text" name="package" value="<?php echo $row['Package']; ?>"><br><br>
+
+    <label>Image URL</label><br>
+    <input type="text" name="image" value="<?php echo $row['Image']; ?>"><br><br>
+
+    <img src="<?php echo $row['Image']; ?>" width="150"><br><br>
+
+    <label>Mobile</label><br>
+    <input type="text" name="mobile" value="<?php echo $row['Mobileno']; ?>"><br><br>
+
+    <label>Address</label><br>
+    <textarea name="address"><?php echo $row['Address']; ?></textarea><br><br>
+
+    <label>Student ID</label><br>
+    <input type="text" name="sid" value="<?php echo $row['sid']; ?>"><br><br>
+
+    <input type="submit" value="Update">
+
 </form>
- 
+
+</body>
+</html>
